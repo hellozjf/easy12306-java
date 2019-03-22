@@ -18,6 +18,7 @@ public enum ResultEnum {
     MODEL_ONLINE_FAILED(7, "模型上线失败"),
     JSON_ERROR(8, "JSON错误"),
     PREDICT_ERROR(9, "预测错误"),
+    BASE64_FILE_CAN_NOT_BE_NULL(10, "Base64文件不能为空"),
     ;
 
     Integer code;

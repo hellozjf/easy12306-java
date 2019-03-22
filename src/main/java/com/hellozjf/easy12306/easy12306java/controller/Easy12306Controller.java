@@ -1,7 +1,9 @@
 package com.hellozjf.easy12306.easy12306java.controller;
 
 import com.hellozjf.easy12306.easy12306java.constant.ResultEnum;
+import com.hellozjf.easy12306.easy12306java.util.ImageUtils;
 import com.hellozjf.easy12306.easy12306java.util.ResultUtils;
+import com.hellozjf.easy12306.easy12306java.util.UUIDUtils;
 import com.hellozjf.easy12306.easy12306java.vo.PredictVO;
 import com.hellozjf.easy12306.easy12306java.vo.ResultVO;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.util.UUID;
 
 /**
  * @author Jingfeng Zhou
@@ -35,7 +38,7 @@ public class Easy12306Controller {
         }
 
         // 获取文件名
-        String filename = multipartFile.getOriginalFilename();
+        String filename = UUIDUtils.genId() + ".jpg";
         File folder = new File("/pic");
         if (! folder.exists()) {
             folder.mkdirs();
@@ -60,6 +63,12 @@ public class Easy12306Controller {
         PredictVO predictVO = new PredictVO();
         Runtime runtime = Runtime.getRuntime();
         Process process = runtime.exec("shell/predict.sh " + file.getAbsolutePath());
+        predictProcess(predictVO, process);
+
+        return ResultUtils.success(predictVO);
+    }
+
+    private void predictProcess(PredictVO predictVO, Process process) {
         try (
                 InputStream inputStream = process.getInputStream();
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "utf-8");
@@ -102,6 +111,49 @@ public class Easy12306Controller {
         } catch (Exception e) {
             log.error("e = {}", e);
         }
+    }
+
+    /**
+     * 接收一个图片文件，返回它的预测结果
+     *
+     * @param base64String
+     * @return
+     */
+    @PostMapping("/predictBase64")
+    public ResultVO onlineModel(String base64String) throws Exception {
+
+        // 判断上传过来的文件是不是空的
+        if (base64String == null) {
+            return ResultUtils.error(ResultEnum.BASE64_FILE_CAN_NOT_BE_NULL);
+        }
+
+        // 获取文件名
+        String filename = UUIDUtils.genId() +  ".jpg";
+        File folder = new File("/pic");
+        if (! folder.exists()) {
+            folder.mkdirs();
+        }
+        File file = new File(folder, filename);
+
+        // 将上传上来的文件保存到/pic目录
+        try {
+            byte[] data = ImageUtils.decode(base64String);
+            // 如果待保存的文件夹不存在，那就创建一个文件夹
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+            // 然后把文件保存下来
+            IOUtils.copy(new ByteArrayInputStream(data), new FileOutputStream(file));
+        } catch (IOException e) {
+            log.error("e = {}", e);
+            return ResultUtils.error(ResultEnum.FILE_IS_WRONG);
+        }
+
+        // 调用脚本预测
+        PredictVO predictVO = new PredictVO();
+        Runtime runtime = Runtime.getRuntime();
+        Process process = runtime.exec("shell/predict.sh " + file.getAbsolutePath());
+        predictProcess(predictVO, process);
 
         return ResultUtils.success(predictVO);
     }
