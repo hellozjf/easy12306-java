@@ -9,7 +9,7 @@
 ### 图片的方式
 
 ```
-/predic/pic
+/predict/pic
 ```
 
 ![](https://aliyun.hellozjf.com:7004/uploads/2019/4/16/TIM截图20190416144100.jpg)
@@ -21,7 +21,7 @@
 ### base64的方式
 
 ```
-/predic/base64
+/predict/base64
 ```
 
 ![](https://aliyun.hellozjf.com:7004/uploads/2019/4/16/TIM截图20190416141533.jpg)
